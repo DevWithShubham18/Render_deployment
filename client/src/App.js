@@ -37,7 +37,7 @@ function App() {
     formData.append("file", state.file)
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/upload", formData)
+      const response = await axios.post("https://render-deployment-jlle.onrender.com/upload", formData)
       dispatch({ type: "SET_STATUS", payload: response.data.message })
     } catch (error) {
       dispatch({ type: "SET_STATUS", payload: "Upload failed" })
@@ -54,7 +54,7 @@ function App() {
     formData.append("question", state.question)
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/query", formData)
+      const response = await axios.post("https://render-deployment-jlle.onrender.com/query", formData)
       if (response.data.success) {
         dispatch({ type: "SET_INSIGHTS", payload: response.data.data })
         dispatch({ type: "SET_STATUS", payload: "Analysis complete" })
