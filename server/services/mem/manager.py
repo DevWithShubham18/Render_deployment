@@ -6,7 +6,7 @@ from schemas.mem import EvolveSchema, NoteSchema
 from schemas.prompts.mem import ANALYSE_PROMPT, EVOLUTION_PROMPT
 from services.mem.note import MemoryNote
 from utils.config import settings
-from utils.logger import logger
+from utils.logger import logger 
 
 
 class MemoryManager:

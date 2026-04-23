@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     ENV: str
     GROQ_API_KEY: SecretStr
     VOYAGE_API_KEY: str
+    PINECONE_API_KEY: str
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
