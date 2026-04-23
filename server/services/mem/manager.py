@@ -1,13 +1,14 @@
 from typing import Any, Dict, List
 
-from app.db_service.retriever import PineconeRetriever
+from db.retriever import PineconeRetriever
 from langchain_groq import ChatGroq
 from schemas.mem import EvolveSchema, NoteSchema
 from schemas.prompts.mem import ANALYSE_PROMPT, EVOLUTION_PROMPT
 from services.mem.note import MemoryNote
+from structlog import get_logger
 from utils.config import settings
-from utils.logger import logger 
 
+mem_logger = get_logger(__name__)
 
 class MemoryManager:
     def __init__(self, llm_client: ChatGroq, evo_threshold: int = 100):
@@ -32,7 +33,7 @@ class MemoryManager:
             return parsed.model_dump()  # type:ignore
 
         except Exception as e:
-            logger.error(f"Error occurred during analyzing content:{e}")
+            mem_logger.error(f"Error occurred during analyzing content:{e}")
             return {
                 "keywords": [],
                 "context": "General",
@@ -139,7 +140,7 @@ class MemoryManager:
             return memories[:k]
 
         except Exception as e:
-            logger.error(f"Error in memory search: {str(e)}")
+            mem_logger.error(f"Error in memory search: {str(e)}")
             return []
 
     def consolidate_memories(self, user_id: str, session_id: str):
@@ -193,7 +194,7 @@ class MemoryManager:
 
             return memory_str, memory_ids
         except Exception as e:
-            logger.error(f"Error in find_related_memories: {str(e)}")
+            mem_logger.error(f"Error in find_related_memories: {str(e)}")
             return "", []
 
     async def process_memory(
@@ -268,9 +269,9 @@ class MemoryManager:
                 return should_evolve, note
 
             except Exception as e:
-                logger.error(f"Error ocurred in evolving messages:{e}")
+                mem_logger.error(f"Error ocurred in evolving messages:{e}")
                 return False, note
 
         except Exception as e:
-            logger.error(f"Error occured in processing memory : {e}")
+            mem_logger.error(f"Error occured in processing memory : {e}")
             return False, note

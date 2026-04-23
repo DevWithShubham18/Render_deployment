@@ -4,7 +4,6 @@ from typing import Dict, Optional
 
 from pinecone import Pinecone, ServerlessSpec
 from utils.config import settings
-from utils.logger import logger
 from voyageai.client import Client
 
 
