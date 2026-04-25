@@ -12,9 +12,9 @@ services:
       - ./server/.env
 
 
-  # client:
-  #   build: ./client
-  #   ports:
-  #     - "3000:80"
-  #   depends_on:
-  #     - server
+  client:
+    build: ./client
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
