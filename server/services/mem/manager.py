@@ -228,7 +228,9 @@ class MemoryManager:
                     actions = resp_json["actions"]
                     for action in actions:
                         if action == "strengthen":
-                            print("strengthen")
+
+                            mem_logger.info(f"Strengthening the current memory")
+
                             suggest_connections = resp_json["suggested_connections"]
                             new_tags = resp_json["tags_to_update"]
 
@@ -236,7 +238,11 @@ class MemoryManager:
                             note.tags = new_tags
 
                         elif action == "update_neighbor":
-                            print("In update neighbour")
+
+                            mem_logger.info(
+                                f"Updating the memory neighbours based on current"
+                            )
+
                             new_context_neighborhood = resp_json[
                                 "new_context_neighborhood"
                             ]

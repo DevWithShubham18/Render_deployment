@@ -9,7 +9,10 @@ from schemas import AgentState
 from schemas.prompts.orch_and_chart import ORCHESTRATOR_PROMPT
 from services.mem.manager import MemoryManager
 from services.tools.chart_tool import render_chart
+from structlog import get_logger
 from utils.config import settings
+
+workflow_logger = get_logger(__name__)
 
 # Memory Manager client
 memory_manager = MemoryManager(
@@ -22,6 +25,7 @@ memory_manager = MemoryManager(
 
 async def memory_retrieve(state: AgentState) -> AgentState:
 
+    workflow_logger.info(f"Retrieving Memories")
     query_text = state["question"]
 
     memories = memory_manager.search(
@@ -29,15 +33,19 @@ async def memory_retrieve(state: AgentState) -> AgentState:
         user_id=state["user_id"],
         k=5,
     )
+    workflow_logger.debug(f"Memories:{memories[:1]}")
 
     state["memory_context"] = "\n".join(
         [f"{m['content']} (context:{m['context']})" for m in memories]
     )
 
+    workflow_logger.info(f"Memories retrieved")
     return state
 
 
 def generate_node(state: AgentState):
+
+    workflow_logger.info(f"Initializing Agent")
 
     agent = create_agent(
         model=ChatGroq(
@@ -64,6 +72,7 @@ def generate_node(state: AgentState):
     text_response = None
     chart_response = None
 
+    workflow_logger.info(f"Invoking Agent")
     result = agent.invoke(agent_input)  # type:ignore
     messages = result.get("messages", [])
     for msg in reversed(messages):
@@ -83,16 +92,13 @@ def generate_node(state: AgentState):
         "text": text_response,
         "chart": chart_response,
     }
-
-    state["response"] = {
-        "text": text_response,
-        "chart": chart_response,
-    }
-
+    workflow_logger.info(f"Agent Invocation completed")
     return state
 
 
 async def memory_store(state: AgentState) -> AgentState:
+
+    workflow_logger.info("Storing Memory")
 
     user_msg = state["question"]
     assistant_msg = state["response"].get("text") if state["response"] else None

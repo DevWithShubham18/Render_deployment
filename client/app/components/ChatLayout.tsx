@@ -10,6 +10,10 @@ export default function ChatLayout() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
+  function cleanText(text: string) {
+  return text.replace(/```json[\s\S]*?```/g, "").trim();
+}
+
   const handleSend = async (query: string) => {
     if (!query.trim()) return;
 
@@ -47,7 +51,7 @@ export default function ChatLayout() {
       }
 
       if (payload.type === "both") {
-        botMsg.content = payload.text;
+        botMsg.content = cleanText(payload.text); 
         botMsg.config = payload.chart;
       }
 

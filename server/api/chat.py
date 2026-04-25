@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from schemas import QuerySchema
-from schemas.report_schema import LLMResponse
 from services.workflow import graph
+from structlog import get_logger
 
 chat_router = APIRouter(prefix="/conversation", tags=["conversation"])
-
+chat_logger = get_logger(__name__)
 
 @chat_router.post("/query")
 async def ask_question(req: QuerySchema):
@@ -15,10 +15,13 @@ async def ask_question(req: QuerySchema):
             "user_id": "demo-user-001",
         }
 
+        chat_logger.info("Invoking Workflow")
+
         result = await graph.ainvoke(state)  # type:ignore
 
         payload = result.get("response", {})
 
+        chat_logger.info("Workflow completed")
         text = payload.get("text")
         chart = payload.get("chart")
 
