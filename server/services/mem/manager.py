@@ -1,14 +1,16 @@
 from typing import Any, Dict, List
 
-from db.retriever import PineconeRetriever
 from langchain_groq import ChatGroq
+from structlog import get_logger
+
+from db.retriever import PineconeRetriever
 from schemas.mem import EvolveSchema, NoteSchema
 from schemas.prompts.mem import ANALYSE_PROMPT, EVOLUTION_PROMPT
 from services.mem.note import MemoryNote
-from structlog import get_logger
 from utils.config import settings
 
 mem_logger = get_logger(__name__)
+
 
 class MemoryManager:
     def __init__(self, llm_client: ChatGroq, evo_threshold: int = 100):
@@ -40,9 +42,7 @@ class MemoryManager:
                 "tags": [],
             }
 
-    async def add_note(
-        self, content: str, time: str, user_id: str, session_id: str, **kwargs
-    ) -> str:
+    async def add_note(self, content: str, time: str, user_id: str, **kwargs) -> str:
         if time is not None:
             kwargs["timestamp"] = time
 
@@ -66,14 +66,12 @@ class MemoryManager:
         evo_label, note = await self.process_memory(
             note,
             user_id=user_id,
-            session_id=session_id,
         )
         self.memories[note.id] = note
 
         metadata = {
             "id": note.id,
             "user_id": user_id,
-            "session_id": session_id,
             "content": note.content,
             "keywords": note.keywords,
             "links": note.links,
@@ -90,7 +88,6 @@ class MemoryManager:
             metadata=metadata,
             doc_id=note.id,
             user_id=user_id,
-            session_id=session_id,
         )
 
         if evo_label == True:
@@ -99,7 +96,6 @@ class MemoryManager:
                 # Consolidate memories when threshold is reached
                 self.consolidate_memories(
                     user_id=user_id,
-                    session_id=session_id,
                 )
 
         return note.id
@@ -108,7 +104,6 @@ class MemoryManager:
         self,
         query: str,
         user_id: str,
-        session_id: str,
         k: int = 5,
     ) -> List[Dict[str, Any]]:
         """Search memories using Pinecone hybrid retrieval."""
@@ -117,7 +112,6 @@ class MemoryManager:
             results = self.retriever.search(
                 query,
                 user_id=user_id,
-                session_id=session_id,
                 k=k,
             )
 
@@ -143,7 +137,10 @@ class MemoryManager:
             mem_logger.error(f"Error in memory search: {str(e)}")
             return []
 
-    def consolidate_memories(self, user_id: str, session_id: str):
+    def consolidate_memories(
+        self,
+        user_id: str,
+    ):
         for memory in self.memories.values():
             metadata = {
                 "id": memory.id,
@@ -159,18 +156,20 @@ class MemoryManager:
                 "tags": memory.tags,
             }
             self.retriever.add_document(
-                memory.content, metadata, memory.id, user_id, session_id
+                memory.content,
+                metadata,
+                memory.id,
+                user_id,
             )
 
     def find_related_memories(
-        self, query: str, user_id: str, session_id: str, k: int = 5
+        self, query: str, user_id: str, k: int = 5
     ) -> tuple[str, List[str]]:
 
         try:
             results = self.retriever.search(
                 query,
                 user_id=user_id,
-                session_id=session_id,
                 k=k,
             )
 
@@ -198,13 +197,13 @@ class MemoryManager:
             return "", []
 
     async def process_memory(
-        self, note: MemoryNote, user_id: str, session_id: str
+        self, note: MemoryNote, user_id: str
     ) -> tuple[bool, MemoryNote]:
         """Process a memory note and determine if it should evolve"""
 
         try:
             neighbors_text, memory_ids = self.find_related_memories(
-                note.content, user_id, session_id, k=5
+                note.content, user_id, k=5
             )
             if not neighbors_text or not memory_ids:
                 return False, note
@@ -250,7 +249,7 @@ class MemoryManager:
                                 memory_id = memory_ids[i]
                                 results = self.retriever.fetch(memory_id)
 
-                                meta = results["vectors"][0]["metadata"]
+                                meta = results["vectors"][0]["metadata"]  #  type:ignore
 
                                 if i < len(new_tags_neighborhood):
                                     meta["tags"] = new_tags_neighborhood[i]
@@ -264,7 +263,6 @@ class MemoryManager:
                                     meta,
                                     memory_id,
                                     user_id,
-                                    session_id,
                                 )
                 return should_evolve, note
 

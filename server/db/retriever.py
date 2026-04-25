@@ -3,8 +3,9 @@ import uuid
 from typing import Dict, Optional
 
 from pinecone import Pinecone, ServerlessSpec
-from utils.config import settings
 from voyageai.client import Client
+
+from utils.config import settings
 
 
 class PineconeRetriever:
@@ -12,7 +13,7 @@ class PineconeRetriever:
     def __init__(
         self,
         api_key: str,
-        index_name: str = "aletheiamemories",
+        index_name: str = "infographicmemories",
         model_name: str = "voyage-4-lite",
         dimension: int = 1024,
     ):
@@ -48,7 +49,6 @@ class PineconeRetriever:
         metadata: Dict,
         doc_id: str,
         user_id: str,
-        session_id: str,
     ):
 
         enhanced_document = document
@@ -75,7 +75,6 @@ class PineconeRetriever:
             for k, v in metadata.items()
         }
         processed_metadata["user_id"] = user_id
-        processed_metadata["session_id"] = session_id
 
         if not doc_id:
             doc_id = str(uuid.uuid4())
@@ -93,7 +92,6 @@ class PineconeRetriever:
         self,
         query: str,
         user_id: str,
-        session_id: Optional[str] = None,
         k: int = 5,
     ):
 
@@ -101,11 +99,8 @@ class PineconeRetriever:
 
         filter_dict = {"user_id": {"$eq": user_id}}
 
-        if session_id:
-            filter_dict["session_id"] = {"$eq": session_id}
-
         results = self.index.query(
-            vector=vector,
+            vector=vector,  # type:ignore
             top_k=k,
             include_metadata=True,
             filter=filter_dict,  # type:ignore

@@ -5,6 +5,7 @@ import uuid
 
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from utils.config import settings
 
 
