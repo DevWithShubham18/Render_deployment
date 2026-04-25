@@ -1,23 +1,15 @@
 import json
 from datetime import datetime
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain.agents import create_agent
+from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
 from langchain_groq import ChatGroq
 from langgraph.graph import END, START, StateGraph
 from schemas import AgentState
-from schemas.prompts.query import query_template
-from schemas.report_schema import LLMResponse
+from schemas.prompts.orch_and_chart import ORCHESTRATOR_PROMPT
 from services.mem.manager import MemoryManager
 from services.tools.chart_tool import render_chart
 from utils.config import settings
-
-# LLM with binded tools
-llm = ChatGroq(
-    api_key=settings.GROQ_API_KEY,
-    model="llama-3.1-8b-instant",
-    temperature=0,
-).bind_tools([render_chart])
-
 
 # Memory Manager client
 memory_manager = MemoryManager(
@@ -46,29 +38,56 @@ async def memory_retrieve(state: AgentState) -> AgentState:
 
 
 def generate_node(state: AgentState):
-    llm = ChatGroq(
-        api_key=settings.GROQ_API_KEY,
-        model="llama-3.1-8b-instant",
-        temperature=0,
+
+    agent = create_agent(
+        model=ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model="openai/gpt-oss-20b",
+        ),
+        system_prompt=SystemMessage(content=ORCHESTRATOR_PROMPT),
+        tools=[render_chart],
     )
 
-    prompt = query_template()
+    available_tools = [render_chart]
+    agent_input = {
+        "messages": state["question"]
+        + [
+            SystemMessage(
+                content=f"Use the user memories: {state['memory_context']}",
+            ),
+            SystemMessage(
+                content=f"Available tools for this request: {available_tools if available_tools else 'None'}"
+            ),
+        ]
+    }
 
-    messages = [
-        SystemMessage(content=prompt.format(context=state.get("memory_context", ""))),
-        HumanMessage(content=state["question"]),
-    ]
+    text_response = None
+    chart_response = None
 
-    try:
-        output = llm.invoke(messages)
-        parsed = json.loads(output.content)  # type:ignore
+    result = agent.invoke(agent_input)  # type:ignore
+    messages = result.get("messages", [])
+    for msg in reversed(messages):
+        if isinstance(msg, AIMessage) and msg.content:
+            text_response = msg.content
+            break
 
-        validated = LLMResponse.model_validate(parsed)
+    for msg in reversed(messages):
+        if isinstance(msg, ToolMessage):
+            try:
+                chart_response = json.loads(msg.content)  # type: ignore
+                break
+            except Exception:
+                pass
 
-        state["response"] = validated.model_dump()
+    state["response"] = {
+        "text": text_response,
+        "chart": chart_response,
+    }
 
-    except Exception as e:
-        state["response"] = {"type": "text", "text": f"Error: {str(e)}"}
+    state["response"] = {
+        "text": text_response,
+        "chart": chart_response,
+    }
 
     return state
 
@@ -76,7 +95,7 @@ def generate_node(state: AgentState):
 async def memory_store(state: AgentState) -> AgentState:
 
     user_msg = state["question"]
-    assistant_msg = state["response"]
+    assistant_msg = state["response"].get("text") if state["response"] else None
 
     content = f"""
 User: {user_msg}

@@ -1,12 +1,11 @@
 from typing import Any, Dict, List
 
-from langchain_groq import ChatGroq
-from structlog import get_logger
-
 from db.retriever import PineconeRetriever
+from langchain_groq import ChatGroq
 from schemas.mem import EvolveSchema, NoteSchema
 from schemas.prompts.mem import ANALYSE_PROMPT, EVOLUTION_PROMPT
 from services.mem.note import MemoryNote
+from structlog import get_logger
 from utils.config import settings
 
 mem_logger = get_logger(__name__)
@@ -212,7 +211,7 @@ class MemoryManager:
                 content=note.content,
                 context=note.context,
                 keywords=note.keywords,
-                nearest_neighbors=neighbors_text,
+                nearest_neighbors_memories=neighbors_text,
                 neighbor_number=len(memory_ids),
             )
 
@@ -247,9 +246,13 @@ class MemoryManager:
                                 min(len(memory_ids), len(new_tags_neighborhood))
                             ):
                                 memory_id = memory_ids[i]
-                                results = self.retriever.fetch(memory_id)
+                                results = self.retriever.fetch(memory_id)       
+                                vectors = results.vectors  
 
-                                meta = results["vectors"][0]["metadata"]  #  type:ignore
+                                if memory_id not in vectors:
+                                    continue
+
+                                meta = vectors[memory_id]["metadata"]
 
                                 if i < len(new_tags_neighborhood):
                                     meta["tags"] = new_tags_neighborhood[i]
