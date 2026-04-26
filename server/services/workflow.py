@@ -83,7 +83,13 @@ def generate_node(state: AgentState):
     for msg in reversed(messages):
         if isinstance(msg, ToolMessage):
             try:
-                chart_response = json.loads(msg.content)  # type: ignore
+                parsed = json.loads(msg.content)
+
+                if isinstance(parsed, dict) and "charts" in parsed:
+                    chart_response = parsed["charts"]
+                else:
+                    chart_response = [parsed]
+
                 break
             except Exception:
                 pass

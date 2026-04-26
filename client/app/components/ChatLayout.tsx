@@ -49,12 +49,12 @@ export default function ChatLayout() {
       }
 
       if (payload.type === "chart") {
-        botMsg.config = payload.chart;
+        botMsg.configs = payload.charts;
       }
 
       if (payload.type === "both") {
         botMsg.content = cleanText(payload.text); 
-        botMsg.config = payload.chart;
+        botMsg.configs = payload.charts;
       }
 
       setMessages((prev) => [...prev, botMsg]);

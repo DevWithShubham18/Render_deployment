@@ -29,3 +29,7 @@ class ChartConfig(BaseModel):
     type: Literal["bar", "line", "pie", "doughnut"]
     data: ChartData
     options: Optional[ChartOptions] = ChartOptions()
+
+
+class MultiChartConfig(BaseModel):
+    charts: List[ChartConfig]

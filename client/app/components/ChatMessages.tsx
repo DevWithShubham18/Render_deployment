@@ -37,11 +37,9 @@ export default function ChatMessages({
             >
               {msg.content}
 
-              {msg.config && (
-                <div className="mt-4 w-full">
-                  <ChartRenderer config={msg.config} />
-                </div>
-              )}
+              {msg.configs?.map((config, i) => (
+                  <ChartRenderer key={i} config={config} />
+                ))}
             </div>
           </div>
         ))}

@@ -1,6 +1,6 @@
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate
-from schemas.report_schema import ChartConfig
+from schemas.report_schema import MultiChartConfig
 
 ORCHESTRATOR_PROMPT = """
 You are Chartify, a central intelligence and orchestration agent, which routes to tools whenever necessary. You have a list of tools available and user's context. Utilize it to prevent a useful response to the user query.
@@ -13,7 +13,7 @@ In the final answer, only return the textual information **DO NOT INCLUDE** JSON
 
 
 def chart_template():
-    parser = PydanticOutputParser(pydantic_object=ChartConfig)
+    parser = PydanticOutputParser(pydantic_object=MultiChartConfig)
 
     prompt = PromptTemplate(
         template="""

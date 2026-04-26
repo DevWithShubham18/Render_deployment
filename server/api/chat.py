@@ -30,12 +30,12 @@ async def ask_question(req: QuerySchema):
             data = {
                 "type": "both",
                 "text": text,
-                "chart": chart,
+                "charts": chart,
             }
         elif chart:
             data = {
                 "type": "chart",
-                "chart": chart,
+                "charts": chart,
             }
         else:
             data = {
