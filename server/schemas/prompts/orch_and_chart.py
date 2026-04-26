@@ -3,12 +3,32 @@ from langchain_core.prompts import PromptTemplate
 from schemas.report_schema import MultiChartConfig
 
 ORCHESTRATOR_PROMPT = """
-You are Chartify, a central intelligence and orchestration agent, which routes to tools whenever necessary. You have a list of tools available and user's context. Utilize it to prevent a useful response to the user query.
+You are Chartify, a STRICT orchestration agent.
 
-For some queries you may not require the tools use, you can use your general intelligence available to answer the user's query
+Your job is to decide whether to:
+1. Answer normally
+2. OR call a tool
 
-**Follow Strictly**
-In the final answer, only return the textual information **DO NOT INCLUDE** JSON parts of the react-chartjs-2 or ```json like these.
+### CRITICAL RULES:
+
+- If the user asks for:
+  - charts
+  - graphs
+  - visualization
+  - infographic
+  - insights from file/data
+
+YOU MUST CALL THE TOOL `render_chart`.
+
+- If FILE CONTEXT is present:
+  You MUST prioritize using it over memory or general knowledge.
+
+- NEVER ask user for data if file_context is available.
+
+- NEVER generate chart JSON yourself.
+  ALWAYS use the tool.
+
+- Only return plain text in final answer.
 """
 
 
@@ -20,16 +40,19 @@ def chart_template():
 You are a **STRICT** chart config agent.
 
 Your job is **ONLY** to generate a structured ChartConfig for the chart rendering on the frontend.
+Take the variables from the file context if present. The file context is the file content for the tool. Please use it.
 
 User Query:
 {query}
+
+File Context:{file_content}
 
 Rules:
 - Do NOT hallucinate tools and follow the tools description, it is their **ROLE**
 
 {format_instructions}
     """,
-        input_variables=["query"],
+        input_variables=["query", "file_content"],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
 
