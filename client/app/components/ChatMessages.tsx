@@ -20,7 +20,7 @@ export default function ChatMessages({
   return (
     <div className="h-full overflow-y-auto px-4 py-6">
       {/* Center wrapper */}
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {messages.map((msg, i) => (
           <div
             key={i}

@@ -10,7 +10,7 @@ export default function ChatHeader() {
 
   return (
     <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
         
         {/* Left: Logo */}
         <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export default function ChatHeader() {
           <div className="relative">
             <button
               onClick={() => setOpen(!open)}
-              className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-gray-100 transition"
+              className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-gray-100 transition cursor-pointer"
             >
               {session.user.image ? (
                 <Image
@@ -61,7 +61,7 @@ export default function ChatHeader() {
 
                 <button
                   onClick={() => signOut()}
-                  className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mt-1"
+                  className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg mt-1 cursor-pointer"
                 >
                   Sign out
                 </button>

@@ -20,7 +20,7 @@ export default function ChatInput({
 
   return (
     <div className="pb-3 bg-white">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-gray-200 bg-white shadow-sm focus-within:shadow-md transition-all">
           <input
             value={value}
