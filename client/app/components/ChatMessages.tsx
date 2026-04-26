@@ -29,7 +29,7 @@ export default function ChatMessages({
             }`}
           >
             <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+              className={`max-w-[75%] wrap-break-word whitespace-pre-wrap px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                 msg.role === "user"
                   ? "bg-black text-white"
                   : "bg-gray-100 text-gray-900 border border-gray-200"
