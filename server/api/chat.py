@@ -9,10 +9,11 @@ chat_logger = get_logger(__name__)
 @chat_router.post("/query")
 async def ask_question(req: QuerySchema):
     try:
+        print(req.userId)
         state = {
             "question": req.query,
             "memory_context": "",
-            "user_id": "demo-user-001",
+            "user_id": req.userId,
         }
 
         chat_logger.info("Invoking Workflow")
