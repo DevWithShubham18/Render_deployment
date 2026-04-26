@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import ChatHeader from "./ChatHeader";
 import ChatMessages from "./ChatMessages";
@@ -7,6 +8,7 @@ import ChatInput from "./ChatInput";
 import { Message } from "../types";
 
 export default function ChatLayout() {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +31,7 @@ export default function ChatLayout() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/conversation/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, userId: session?.user?.id }),
       });
 
       const data = await res.json();
